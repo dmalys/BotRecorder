@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="PolicyRecordingBot" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="6" osVersion="*" schemaVersion="2015-04.2.6">
+  <Role name="CRWorkerRole">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="ServiceDnsName" value="thefaze.de" />
+      <!-- xyz.cloudapp.net-->
+      <Setting name="ServiceCNAME" value="thefaze.de" />
+      <!-- CNAME pointing to the .cloudapp.net if available.-->
+      <Setting name="DefaultCertificate" value="F9BC3EC043FB1F5D30CA4E4F042F6D65260CF593" />
+      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="DefaultCertificate" thumbprint="F9BC3EC043FB1F5D30CA4E4F042F6D65260CF593" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+  <NetworkConfiguration>
+    <VirtualNetworkSite name="testbotrecorderservice1VNet" />
+    <AddressAssignments>
+      <InstanceAddress roleName="CRWorkerRole">
+        <Subnets>
+          <Subnet name="WebTier" />
+        </Subnets>
+      </InstanceAddress>
+    </AddressAssignments>
+  </NetworkConfiguration>
+</ServiceConfiguration>
