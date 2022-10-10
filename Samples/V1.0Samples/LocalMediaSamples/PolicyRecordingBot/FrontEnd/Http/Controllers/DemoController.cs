@@ -90,9 +90,12 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Http
         /// </returns>
         [HttpGet]
         [Route(HttpRouteConstants.Calls + "/")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1137:Elements should have the same indentation", Justification = "4234")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1028:Code should not contain trailing whitespace", Justification = "4324")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1500:Braces for multi-line statements should not share line", Justification = "4234234")]
         public HttpResponseMessage OnGetCalls()
         {
-            this.Logger.Info("Getting calls");
+            System.Diagnostics.Trace.WriteLine("Getting calls");
 
             if (Bot.Instance.CallHandlers.IsEmpty)
             {
@@ -105,12 +108,8 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Http
                 var call = callHandler.Call;
                 var callPath = "/" + HttpRouteConstants.CallRoute.Replace("{callLegId}", call.Id);
                 var callUri = new Uri(Service.Instance.Configuration.CallControlBaseUrl, callPath).AbsoluteUri;
-                var values = new Dictionary<string, string>
-                {
-                    { "legId", call.Id },
-                    { "scenarioId", call.ScenarioId.ToString() },
-                    { "call", callUri },
-                    { "logs", callUri.Replace("/calls/", "/logs/") },
+                var values = new Dictionary<string, string> {
+                    { "legId", call.Id }, { "scenarioId", call.ScenarioId.ToString() }, { "call", callUri }, { "logs", callUri.Replace("/calls/", "/logs/") },
                 };
                 calls.Add(values);
             }

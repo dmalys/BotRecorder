@@ -3,15 +3,16 @@
   <Role name="CRWorkerRole">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="ServiceDnsName" value="thefaze.de" />
+      <Setting name="ServiceDnsName" value="bot.thefaze.de" />
       <!-- xyz.cloudapp.net-->
-      <Setting name="ServiceCNAME" value="thefaze.de" />
+      <Setting name="ServiceCNAME" value="bot.thefaze.de" />
       <!-- CNAME pointing to the .cloudapp.net if available.-->
-      <Setting name="DefaultCertificate" value="F9BC3EC043FB1F5D30CA4E4F042F6D65260CF593" />
-      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="" />
+      <Setting name="DefaultCertificate" value="AA12ECA33CFB788496F658ADEA6C929489562C23" />
+      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="47d9f8a6-85d6-4b2e-8209-0023751a8532" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=testbotrecorderservicstg;AccountKey=$(_testbotrecorderservicstg.key_)" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="DefaultCertificate" thumbprint="F9BC3EC043FB1F5D30CA4E4F042F6D65260CF593" thumbprintAlgorithm="sha1" />
+      <Certificate name="wildcard-bot-certificate" thumbprint="AA12ECA33CFB788496F658ADEA6C929489562C23" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
   <NetworkConfiguration>
@@ -21,6 +22,9 @@
         <Subnets>
           <Subnet name="WebTier" />
         </Subnets>
+	      <PublicIPs>
+		      <PublicIP name="instancePublicIP" domainNameLabel="pip" />
+	      </PublicIPs>
       </InstanceAddress>
     </AddressAssignments>
   </NetworkConfiguration>

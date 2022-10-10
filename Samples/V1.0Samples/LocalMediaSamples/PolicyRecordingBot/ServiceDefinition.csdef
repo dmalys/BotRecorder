@@ -26,6 +26,7 @@
       <!-- CNAME pointing to the .cloudapp.net if available-->
       <Setting name="DefaultCertificate" />
       <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="DefaultEndpoint" protocol="tcp" port="443" localPort="9441" />
@@ -44,7 +45,7 @@
       <LocalStorage name="NETFXInstall" sizeInMB="1024" cleanOnRoleRecycle="false" />
     </LocalResources>
     <Certificates>
-      <Certificate name="DefaultCertificate" storeLocation="LocalMachine" storeName="CA" />
+      <Certificate name="wildcard-bot-certificate" storeLocation="LocalMachine" storeName="My" />
     </Certificates>
   </WorkerRole>
 </ServiceDefinition>
