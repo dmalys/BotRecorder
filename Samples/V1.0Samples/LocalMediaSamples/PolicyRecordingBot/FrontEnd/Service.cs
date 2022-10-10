@@ -84,6 +84,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd
                 foreach (var url in this.Configuration.CallControlListeningUrls)
                 {
                     callStartOptions.Urls.Add(url.ToString());
+                    System.Diagnostics.Trace.WriteLine(url.ToString());
                 }
 
                 this.callHttpServer = WebApp.Start(

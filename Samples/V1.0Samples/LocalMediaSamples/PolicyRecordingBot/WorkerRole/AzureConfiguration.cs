@@ -220,6 +220,13 @@ namespace Sample.PolicyRecordingBot.WorkerRole
                 controlListenUris.Add(new Uri("https://" + defaultEndpoint.IPEndpoint + "/"));
             }
 
+            foreach (var uri in controlListenUris)
+            {
+                System.Diagnostics.Trace.WriteLine($"Default endpoint {uri.Host}");
+            }
+
+            System.Diagnostics.Trace.WriteLine($"Default endpoint {instanceCallControlIpEndpoint}");
+            System.Diagnostics.Trace.WriteLine($"Default endpoint {defaultEndpoint.IPEndpoint}");
             this.TraceConfigValue("CallControlCallbackUri", this.CallControlBaseUrl);
             this.CallControlListeningUrls = controlListenUris;
 
@@ -228,23 +235,18 @@ namespace Sample.PolicyRecordingBot.WorkerRole
                 this.TraceConfigValue("Call control listening Uri", uri);
             }
 
-            IPAddress publicInstanceIpAddress = RoleEnvironment.IsEmulated
-                ? IPAddress.Any
-                : this.GetInstancePublicIpAddress(this.ServiceDnsName);
 
+            System.Diagnostics.Trace.WriteLine(this.ServiceDnsName);
             string serviceFqdn = RoleEnvironment.IsEmulated ? "0.ngrok.skype-graph-test.net" : this.ServiceCname;
 
-            this.MediaPlatformSettings = new MediaPlatformSettings()
-            {
-                MediaPlatformInstanceSettings = new MediaPlatformInstanceSettings()
-                {
+            this.MediaPlatformSettings = new MediaPlatformSettings {
+                MediaPlatformInstanceSettings = new MediaPlatformInstanceSettings {
                     CertificateThumbprint = defaultCertificate.Thumbprint,
                     InstanceInternalPort = mediaInstanceInternalPort,
-                    InstancePublicIPAddress = publicInstanceIpAddress,
+                    InstancePublicIPAddress = IPAddress.Parse("0.0.0.0"),
                     InstancePublicPort = mediaInstancePublicPort,
                     ServiceFqdn = serviceFqdn,
                 },
-
                 ApplicationId = this.AadAppId,
             };
         }
@@ -365,26 +367,35 @@ namespace Sample.PolicyRecordingBot.WorkerRole
         /// <returns>IPAddress.</returns>
         private IPAddress GetInstancePublicIpAddress(string publicFqdn)
         {
-            // get the instanceId for the current instance. It will be of the form  XXMediaBotRole_IN_0. Look for IN_ and then extract the number after it
-            // Assumption: in_<instanceNumber> will the be the last in the instanceId
-            string instanceId = RoleEnvironment.CurrentRoleInstance.Id;
-            int instanceIdIndex = instanceId.IndexOf(InstanceIdToken, StringComparison.OrdinalIgnoreCase);
-            if (!int.TryParse(instanceId.Substring(instanceIdIndex + InstanceIdToken.Length), out int instanceNumber))
+            try
             {
-                var err = $"Couldn't extract Instance index from {instanceId}";
-                this.graphLogger.Error(err);
-                throw new Exception(err);
-            }
+                // get the instanceId for the current instance. It will be of the form  XXMediaBotRole_IN_0. Look for IN_ and then extract the number after it
+                // Assumption: in_<instanceNumber> will the be the last in the instanceId
+                string instanceId = RoleEnvironment.CurrentRoleInstance.Id;
+                int instanceIdIndex = instanceId.IndexOf(InstanceIdToken, StringComparison.OrdinalIgnoreCase);
+                if (!int.TryParse(instanceId.Substring(instanceIdIndex + InstanceIdToken.Length), out int instanceNumber))
+                {
+                    var err = $"Couldn't extract Instance index from {instanceId}";
+                    this.graphLogger.Error(err);
+                    throw new Exception(err);
+                }
 
-            // for example: instance0 for fooservice.cloudapp.net will have hostname as pip.0.fooservice.cloudapp.net
-            string instanceHostName = DomainNameLabel + "." + instanceNumber + "." + publicFqdn;
-            IPAddress[] instanceAddresses = Dns.GetHostEntry(instanceHostName).AddressList;
-            if (instanceAddresses.Length == 0)
+                // for example: instance0 for fooservice.cloudapp.net will have hostname as pip.0.fooservice.cloudapp.net
+                string instanceHostName = DomainNameLabel + "." + instanceNumber + "." + publicFqdn;
+                IPAddress[] instanceAddresses = Dns.GetHostEntry(publicFqdn).AddressList;
+                if (instanceAddresses.Length == 0)
+                {
+                    throw new InvalidOperationException("Could not resolve the PIP hostname. Please make sure that PIP is properly configured for the service");
+                }
+
+                return instanceAddresses[0];
+            }
+            catch (Exception e)
             {
-                throw new InvalidOperationException("Could not resolve the PIP hostname. Please make sure that PIP is properly configured for the service");
+                Console.WriteLine(publicFqdn);
+                Console.WriteLine(e);
+                throw;
             }
-
-            return instanceAddresses[0];
         }
     }
 }

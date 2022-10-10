@@ -3,13 +3,13 @@
   <PropertyGroup>
     <AzureCredentials>{"ServiceManagementEndpoint":"https:\/\/management.core.windows.net\/","ResourceManagementEndpoint":"https:\/\/management.azure.com\/","SubscriptionId":"eb04b706-850f-425f-b238-b422bab35850"}</AzureCredentials>
     <AzureDeploymentLabel>PolicyRecordingBot</AzureDeploymentLabel>
-    <AzureEnableRemoteDesktop>False</AzureEnableRemoteDesktop>
+    <AzureEnableRemoteDesktop>True</AzureEnableRemoteDesktop>
     <AzureServiceConfiguration>Cloud</AzureServiceConfiguration>
     <AzureSolutionConfiguration>Release</AzureSolutionConfiguration>
     <AzureAppendTimestampToDeploymentLabel>True</AzureAppendTimestampToDeploymentLabel>
     <EnableApplicationInsights>True</EnableApplicationInsights>
-    <AzureRMCloudServiceV2Name>+testbotrecorderservice1</AzureRMCloudServiceV2Name>
-    <AzureRMCloudServiceV2ResourceGroupName>bot-recorder-resource-group</AzureRMCloudServiceV2ResourceGroupName>
+    <AzureRMCloudServiceV2Name>testbotrecorderservice1</AzureRMCloudServiceV2Name>
+    <AzureRMCloudServiceV2ResourceGroupName>BOT-RECORDER-RESOURCE-GROUP</AzureRMCloudServiceV2ResourceGroupName>
     <AzureRMCloudServiceV2Location>{"Name":"northeurope","DisplayName":"North Europe"}</AzureRMCloudServiceV2Location>
     <AzureRMKeyVaultName>testbotrecorderservicekv</AzureRMKeyVaultName>
     <AzureRMKeyVaultResourceGroupName>bot-recorder-resource-group</AzureRMKeyVaultResourceGroupName>

@@ -37,6 +37,7 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="CRWorkerRoleContent\" />
     <Folder Include="Profiles" />
   </ItemGroup>
   <ItemGroup>
@@ -49,8 +50,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PublishProfile Include="Profiles\bot-classic-recorderProduction.azurePubxml" />
     <PublishProfile Include="Profiles\SampleGraphBotProduction1.azurePubxml" />
     <PublishProfile Include="Profiles\testbotrecorderservice1.azureRMPubxml" />
+  </ItemGroup>
+  <ItemGroup>
+    <DiagnosticsConfiguration Include="CRWorkerRoleContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>

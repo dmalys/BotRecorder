@@ -51,6 +51,7 @@ namespace Sample.PolicyRecordingBot.WorkerRole
         /// </summary>
         public override void Run()
         {
+            System.Diagnostics.Trace.WriteLine("WorkerRole is running");
             this.logger.Info("WorkerRole is running");
 
             try
@@ -85,12 +86,15 @@ namespace Sample.PolicyRecordingBot.WorkerRole
 
                 var result = base.OnStart();
 
+                System.Diagnostics.Trace.WriteLine("WorkerRole has been started");
+
                 this.logger.Info("WorkerRole has been started");
 
                 return result;
             }
             catch (Exception e)
             {
+                System.Diagnostics.Trace.WriteLine("Exception on startup");
                 this.logger.Error(e, "Exception on startup");
                 throw;
             }
@@ -101,7 +105,7 @@ namespace Sample.PolicyRecordingBot.WorkerRole
         /// </summary>
         public override void OnStop()
         {
-            this.logger.Info("WorkerRole is stopping");
+            System.Diagnostics.Trace.WriteLine("WorkerRole is stopping");
 
             Service.Instance.Stop();
             this.cancellationTokenSource.Cancel();
@@ -109,7 +113,7 @@ namespace Sample.PolicyRecordingBot.WorkerRole
 
             base.OnStop();
 
-            this.logger.Info("WorkerRole has stopped");
+            System.Diagnostics.Trace.WriteLine("WorkerRole has stopped");
         }
 
         /// <summary>
@@ -126,7 +130,6 @@ namespace Sample.PolicyRecordingBot.WorkerRole
             // TODO: Replace the following with your own logic.
             while (!cancellationToken.IsCancellationRequested)
             {
-                this.logger.Info("Working");
                 await Task.Delay(1000).ConfigureAwait(false);
             }
         }

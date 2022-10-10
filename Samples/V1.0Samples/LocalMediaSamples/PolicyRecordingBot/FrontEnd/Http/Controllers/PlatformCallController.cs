@@ -48,7 +48,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Http
         [Route(HttpRouteConstants.OnIncomingRequestRoute)]
         public async Task<HttpResponseMessage> OnIncomingRequestAsync()
         {
-            this.Logger.Info($"Received HTTP {this.Request.Method}, {this.Request.RequestUri}");
+            System.Diagnostics.Trace.WriteLine($"Received HTTP {this.Request.Method}, {this.Request.RequestUri}");
 
             // Instead of passing incoming notification to SDK, let's process it ourselves
             // so we can handle any policy evaluations.
@@ -70,7 +70,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Http
         [Route(HttpRouteConstants.OnNotificationRequestRoute)]
         public async Task<HttpResponseMessage> OnNotificationRequestAsync()
         {
-            this.Logger.Info($"Received HTTP {this.Request.Method}, {this.Request.RequestUri}");
+            System.Diagnostics.Trace.WriteLine($"Received HTTP {this.Request.Method}, {this.Request.RequestUri}");
 
             // Pass the incoming notification to the sdk. The sdk takes care of what to do with it.
             var response = await this.Client.ProcessNotificationAsync(this.Request).ConfigureAwait(false);
@@ -140,11 +140,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Http
                 client.GraphLogger.Error(ex, $"Failed authenticating inbound request ({requestId}): {request.RequestUri}");
 
                 var clientEx = new ClientException(
-                    new Error
-                    {
-                        Code = ErrorConstants.Codes.ClientCallbackError,
-                        Message = ErrorConstants.Messages.ClientErrorAuthenticatingRequest,
-                    },
+                    new Error { Code = ErrorConstants.Codes.ClientCallbackError, Message = ErrorConstants.Messages.ClientErrorAuthenticatingRequest, },
                     ex);
 
                 client.GraphLogger.LogHttpRequest(request, HttpStatusCode.InternalServerError, notifications, clientEx);
