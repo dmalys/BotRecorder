@@ -13,70 +13,118 @@ The Policy Recording bot sample guides you through building, deploying and testi
 
 This section walks you through the process of deploying and testing the sample bot.
 
-### Bot Registration
-
-1. Follow the steps in [Register Calling Bot](https://microsoftgraph.github.io/microsoft-graph-comms-samples/docs/articles/calls/register-calling-bot.html). Save the bot name, bot app id and bot secret for configuration.
-    * For the calling webhook, by default the notification will go to https://{your domain}/api/calling. This is configured with the `CallSignalingRoutePrefix` in [HttpRouteConstants.cs](FrontEnd/Http/Controllers/HttpRouteConstants.cs).
-    * Ignore the "Register bot in Microsoft Teams" section as the Policy Recording bot won't be called directly. These bots are related to the policies discussed below, and are "attached" to users, and will be automatically invited to the call.
-
-1. Add the following Application Permissions to the bot:
-
-    * Calls.AccessMedia.All
-    * Calls.JoinGroupCall.All
-   
-1. The permission needs to be consented by tenant admin. Go to "https://login.microsoftonline.com/common/adminconsent?client_id=<app_id>&state=<any_number>&redirect_uri=<any_callback_url>" using tenant admin to sign-in, then consent for the whole tenant.
-
-### Create an Application Instance
-
-Open powershell (in admin mode) and run the following commands. When prompted for authentication, login with the tenant admin.
-  * `Import-Module SkypeOnlineConnector`
-  * `$Session=New-CsOnlineSession`
-  * `Import-PSSession $Session`
-  * `New-CsOnlineApplicationInstance -UserPrincipalName <upn@contoso.com> -DisplayName <displayName> -ApplicationId <your_botappId>`
-  * `Sync-CsOnlineApplicationInstance -ObjectId <objectId>`
-
-### Create a Recording Policy
-Requires the application instance ID created above. Continue your powershell session and run the following commands.
-  * `New-CsTeamsComplianceRecordingPolicy -Enabled $true -Description "Test policy created by <yourName>" <policyIdentity>`
-  * ```Set-CsTeamsComplianceRecordingPolicy -Identity <policyIdentity> -ComplianceRecordingApplications ` @(New-CsTeamsComplianceRecordingApplication -Parent <policyIdentity> -Id <objectId>)```
-
-After 30-60 seconds, the policy should show up. To verify your policy was created correctly:
-  * `Get-CsTeamsComplianceRecordingPolicy <policyIdentity>`
-
-### Assign the Recording Policy
-Requries the policy identity created above. Contine your powershell session and run the following commands.
-  * `Grant-CsTeamsComplianceRecordingPolicy -Identity <userUnderPolicy@contoso.com> -PolicyName <policyIdentity>`
-
-To verify your policy was assigned correctly:
-  * `Get-CsOnlineUser <userUnderPolicy@contoso.com> | ft sipaddress, tenantid, TeamsComplianceRecordingPolicy`
-
 ### Prerequisites
 
 * Install the prerequisites:
     * [Visual Studio 2017+](https://visualstudio.microsoft.com/downloads/)
     * [PostMan](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop)
 
+### Register your Office 365 organization account
+
+This bot requires an Office 365 organization. Follow this guide to create one.
+
+### Prepare cloud infrastructure
+
+Part 1 - prepare domains and SSL certificate:
+
+1. Create VM - it will be necessary to obtain a wildcard certificate. 
+2. In your domain management tool (in our case google domains) connect your wildcard DNS record (in our example *.thefaze.de) with the VM IP address and your bot subdomain (ex. bot.thefaze.de) with the VM domain (ex. testbotrecorderservice1.northeurope.cloudapp.azure.com). 
+   
+   ![Domains](Images/domains.png)
+
+3. On your VM generate a wildcard certificate (you can do it with [certbot](https://certbot.eff.org/)). Than download it and convert certificate format from .crt to .pfx with [OpenSSL](https://www.openssl.org/) tool. It will be used later.
+
+Part 2 - prepare Azure infrastructure:
+
+1. Create Azure Bot. Next, go to Channels => Microsoft Teams and enable calling and set webhook (with previously created domain ex. https://bot.thefaze.de/api/calling). Save your bot name for later configuration.
+   
+  ![Recording Bot](Images/AzureBot.png)
+
+2. Create a Key Vault and import the SSL certificate created in part 1 in .pfx format. Copy the certificate thumbprint and save it for later. Then set the access principles.
+   
+  ![Key vault](Images/KeyVault.png)
+
+  ![Access principles](Images/KeyVaultAccess.png)
+   
+3. Create Storage Account. Copy the blob service endpoint and access key and save it for later.
+   
+  ![Storage account](Images/StorageAccount.png)
+
+  ![Storage account Key](Images/StorageAccountKey.png)
+   
+4. Register a new application in Azure Active Directory. Add new API Permissions -> Microsoft Graph and grant the administrator consent. Copy and save the application name, application id, and app secret.
+   
+  ![Azure App Registration](Images/AppRegistration.png)
+
+  ![Azure App Secret](Images/AppSecret.png)
+
+  ![Azure App Permissions](Images/AppPermisions.png)
+
+5. Create user - save MeetingOrganizer user objectId. 
+
+  ![Azure user](Images/User.png)
+
+Part 3 - activate accounts in M365 Admin Center:
+
+1. Navigate to https://admin.microsoft.com/ and next to Users => Active users.
+2. Search for previously added users. Go to the Licenses and apps check the MS Teams app and click the "Turn on" button.
+   
+  ![M365](Images/M365.png)
+
+
+## Configuring an Application Instance 
+
+Perform the following steps on your local machine. Open PowerShell (in admin mode) and run the following commands. When prompted for authentication, log in with the tenant admin.
+
+### Authenticate teams in PowerShell
+  * `Install-Module -Name MicrosoftTeams -Force -AllowClobber`
+  * `Import-Module MicrosoftTeams`
+  * `Connect-Microsoft Teams` - connect to teams with the Office 365 account
+
+### Create an Access Policy and assign grant it to AAD (Azure Active Directory) user
+  * `New-CsApplicationAccessPolicy -Identity {AccessPolicyName} -AppIds {"ApplicationID"} -Description {"Access Policy Description"}` - create an application access policy that contains your application ID's.
+  * `Grant-CsApplicationAccessPolicy -PolicyName {AccessPolicyName} -Identity {UserObjectId}` - the Identity parameter is the ObjectId of the AAD User. This action can take 30 minutes to take effect!
+
+### Create Application Instance
+  * `New-CsOnlineApplicationInstance -UserPrincipalName {UserUPN} -DisplayName {UserDisplayName} -ApplicationId {ApplicationID}` - create application instance. UserUPN example: userUnderPolicy@example.com.This command will return the ObjectId of the Application Instance User. The ApplicationId parameter is the Application ID of the AAD App registrations. 
+  * `Sync-CsOnlineApplicationInstance -ObjectId {UserObjectId}` -  The ObjectId parameter value will be obtained by the previous command.
+
+### Create a compliance recording policy and assign it to the user
+  * `New-CsTeamsComplianceRecordingPolicy -Enabled $true -Description {Policy Description} {ComplianceRecordingPolicyName}`
+  * Set-CsTeamsComplianceRecordingPolicy -Identity {ComplianceRecordingPolicyName} -ComplianceRecordingApplications `@(New-CsTeamsComplianceRecordingApplication -Parent {ComplianceRecordingPolicyName} -Id {UserObjectId})
+  * `Grant-CsTeamsComplianceRecordingPolicy -Identity {UserUPN} -PolicyName {ComplianceRecordingPolicyName}`
+
+To verify your policy was assigned correctly:
+  * `Get-CsOnlineUser {UserUPN} | ft sipaddress, tenantid, TeamsComplianceRecordingPolicy`
+
+## Project cloud configuration
+Switch to the source code folder path, execute the PS within the source code, and enter the settings project information
+- cd {SourcePath}\CustomComplianceRecordingBot\Source
+- .\configure_cloud.ps1
+- Path: {SourcePath}\CustomComplianceRecordingBot\Source\BotService\LocalMedia\ComplianceRecordingBot
+- Service DNS name: {DNS name}
+- Service CName: {CName}
+- Certificate thumbprint: {thumbprint}
+- Bot Display Name: {Azure Bot Service Name}
+- Bot's Microsoft application id: {Azure Bot Service application id}
+- Bot's Microsoft application secret: {Azure Bot Service application secret}
+
+### Teams configuration
+
+1. Go to the [Teams Admin site](https://admin.teams.microsoft.com/). In Teams go to Manage Teams => channels. Select a channel and add previously created users. 
+
+  ![M365](Images/Teams.png)
+
+2. Open [teams](https://teams.microsoft.com/). Select a channel and click "Get a link to the channel". In the displayed link search for ".../channel/YOUR_CHANNEL_ID/..."
+
+  ![M365](Images/TeamsChannel.png)
+
 ### Deploy
+Publish the bot from VS:
 
-1. Create a cloud service (classic) in Azure. Get your "Site URL" from Azure portal, this will be your DNS name and CN name for later configuration, for example: `bot.contoso.com`.
+Right-click PolicyRecordingBot, then click `Publish (extended support)`. 
 
-2. Set up SSL certificate and upload to the cloud service
-    1. Create a wildcard certificate for your service. This certificate should not be a self-signed certificate. For instance, if your bot is hosted at `bot.contoso.com`, create the certificate for `*.contoso.com`.
-    2. Upload the certificate to the cloud service.
-    3. Copy the thumbprint for later.
-
-3. Set up cloud service configuration
-    1. Open powershell, go to the folder that contains file `configure_cloud.ps1`. The file is in the `Samples` directory.
-
-    2. Run the powershell script with parameters:
-        ` .\configure_cloud.ps1 -p {path to project} -dns {your DNS name} -cn {your CN name, should be the same as your DNS name} -thumb {your certificate thumbprint} -bid {your bot name} -aid {your bot app id} -as {your bot secret}`
-        
-        For example:
-        
-         `.\configure_cloud.ps1 -p .\V1.0Samples\LocalMediaSamples\PolicyRecordingBot\ -dns bot.contoso.com -cn bot.contoso.com -thumb ABC0000000000000000000000000000000000CBA -bid bot -aid 3853f935-2c6f-43d7-859d-6e8f83b519ae -as 123456!@#$%^`
-
-4. Publish the bot from VS:
-    1. Right click PolicyRecordingBot, then click `Publish...`. Publish it to the cloud service you created earlier.
+Choose the correct Azure Subscription Publish it to the cloud service you created earlier.
 
 ### Test
 
