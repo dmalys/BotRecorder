@@ -61,6 +61,18 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
             var audioSocket = this.Call.GetLocalMediaSession().AudioSocket;
             audioSocket.DominantSpeakerChanged += this.OnDominantSpeakerChanged;
 
+            // Add video sockets from Call into availible sockets list, this will allow to subscribe to participant video
+            var videoSockets = this.Call.GetLocalMediaSession().VideoSockets;
+            System.Diagnostics.Trace.WriteLine($"Number of video sockets: {videoSockets.Count}");
+            if (videoSockets?.Any() == true)
+            {
+                foreach (var videoSocket in videoSockets)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Added socket id: {(uint)videoSocket.SocketId}");
+                    this.availableSocketIds.Add((uint)videoSocket.SocketId);
+                }
+            }
+
             // susbscribe to the participants updates, this will inform the bot if a particpant left/joined the conference
             this.Call.Participants.OnUpdated += this.ParticipantsOnUpdated;
             this.Call.ParticipantLeftHandler += this.ParticipantLeft;
@@ -310,6 +322,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
                         // we want to verify if we already have a socket subscribed to the MSI
                         if (!this.msiToSocketIdMapping.ContainsKey(msi))
                         {
+                            System.Diagnostics.Trace.WriteLine($"Number of availableSockets: {this.availableSocketIds.Count}");
                             if (this.availableSocketIds.Any())
                             {
                                 socketId = this.availableSocketIds.Last();
@@ -320,6 +333,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
 
                         updateMSICache = true;
                         this.GraphLogger.Info($"[{this.Call.Id}:SubscribeToParticipant(socket {socketId} available, the number of remaining sockets is {this.availableSocketIds.Count}, subscribing to the participant {participant.Id})");
+                        System.Diagnostics.Trace.WriteLine($"[{this.Call.Id}:SubscribeToParticipant(socket {socketId} available, the number of remaining sockets is {this.availableSocketIds.Count}, subscribing to the participant {participant.Id}), subscribeToVideo = {subscribeToVideo}");
                     }
                     else if (forceSubscribe)
                     {
@@ -345,6 +359,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
                     this.msiToSocketIdMapping.AddOrUpdate(msi, socketId, (k, v) => socketId);
 
                     this.GraphLogger.Info($"[{this.Call.Id}:SubscribeToParticipant(subscribing to the participant {participant.Id} on socket {socketId})");
+                    System.Diagnostics.Trace.WriteLine($"[{this.Call.Id}:SubscribeToParticipant(subscribing to the participant {participant.Id} on socket {socketId})");
                     this.BotMediaStream.Subscribe(MediaType.Video, msi, VideoResolution.HD1080p, socketId);
                 }
             }
