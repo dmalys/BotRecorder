@@ -81,6 +81,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
                 this.ValidateSubscriptionMediaType(mediaType);
 
                 this.GraphLogger.Info($"Subscribing to the video source: {mediaSourceId} on socket: {socketId} with the preferred resolution: {videoResolution} and mediaType: {mediaType}");
+                System.Diagnostics.Trace.WriteLine($"Subscribing to the video source: {mediaSourceId} on socket: {socketId} with the preferred resolution: {videoResolution} and mediaType: {mediaType}");
                 if (mediaType == MediaType.Vbss)
                 {
                     if (this.vbssSocket == null)
@@ -107,6 +108,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
             catch (Exception ex)
             {
                 this.GraphLogger.Error(ex, $"Video Subscription failed for the socket: {socketId} and MediaSourceId: {mediaSourceId} with exception");
+                System.Diagnostics.Trace.WriteLine($"Video Subscription failed for the socket: {socketId} and MediaSourceId: {mediaSourceId} with exception");
             }
         }
 
@@ -181,6 +183,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         private void OnAudioMediaReceived(object sender, AudioMediaReceivedEventArgs e)
         {
             this.GraphLogger.Info($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
+            System.Diagnostics.Trace.WriteLine($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
 
             // TBD: Policy Recording bots can record the Audio here
             e.Buffer.Dispose();
@@ -198,6 +201,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         private void OnVideoMediaReceived(object sender, VideoMediaReceivedEventArgs e)
         {
             this.GraphLogger.Info($"[{e.SocketId}]: Received Video: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
+            System.Diagnostics.Trace.WriteLine($"[{e.SocketId}]: Received Video: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
 
             // TBD: Policy Recording bots can record the Video here
             e.Buffer.Dispose();
