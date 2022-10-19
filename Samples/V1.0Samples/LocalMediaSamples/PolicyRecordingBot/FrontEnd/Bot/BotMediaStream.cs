@@ -13,6 +13,10 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Sockets;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using Gst;
     using Microsoft.Graph.Communications.Calls.Media;
     using Microsoft.Graph.Communications.Common;
     using Microsoft.Graph.Communications.Common.Telemetry;
@@ -183,7 +187,8 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         private void OnAudioMediaReceived(object sender, AudioMediaReceivedEventArgs e)
         {
             this.GraphLogger.Info($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
-            System.Diagnostics.Trace.WriteLine($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
+
+            // System.Diagnostics.Trace.WriteLine($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
 
             // TBD: Policy Recording bots can record the Audio here
             e.Buffer.Dispose();
@@ -202,6 +207,22 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         {
             this.GraphLogger.Info($"[{e.SocketId}]: Received Video: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
             System.Diagnostics.Trace.WriteLine($"[{e.SocketId}]: Received Video: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
+
+            UdpClient udpClient = new UdpClient();
+
+            var sendBytes = new byte[e.Buffer.Length];
+
+            Marshal.Copy(e.Buffer.Data, sendBytes, 0, sendBytes.Length);
+
+            try
+            {
+                var packetLength = udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 11000);
+                System.Diagnostics.Trace.WriteLine("Sending Udp... Packet length: " + packetLength);
+            }
+            catch (Exception execption)
+            {
+                System.Diagnostics.Trace.WriteLine(execption.ToString());
+            }
 
             // TBD: Policy Recording bots can record the Video here
             e.Buffer.Dispose();
