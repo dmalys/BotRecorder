@@ -187,8 +187,23 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         private void OnAudioMediaReceived(object sender, AudioMediaReceivedEventArgs e)
         {
             this.GraphLogger.Info($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
+            System.Diagnostics.Trace.WriteLine($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
 
-            // System.Diagnostics.Trace.WriteLine($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
+            UdpClient udpClient = new UdpClient();
+
+            var sendBytes = new byte[e.Buffer.Length];
+
+            Marshal.Copy(e.Buffer.Data, sendBytes, 0, sendBytes.Length);
+
+            try
+            {
+                var packetLength = udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 12000);
+                System.Diagnostics.Trace.WriteLine("Sending Audio Udp... Packet length: " + packetLength);
+            }
+            catch (Exception execption)
+            {
+                System.Diagnostics.Trace.WriteLine(execption.ToString());
+            }
 
             // TBD: Policy Recording bots can record the Audio here
             e.Buffer.Dispose();
@@ -217,7 +232,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
             try
             {
                 var packetLength = udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 11000);
-                System.Diagnostics.Trace.WriteLine("Sending Udp... Packet length: " + packetLength);
+                System.Diagnostics.Trace.WriteLine("Sending Video Udp... Packet length: " + packetLength);
             }
             catch (Exception execption)
             {
