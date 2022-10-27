@@ -32,6 +32,7 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         private readonly IVideoSocket vbssSocket;
         private readonly List<IVideoSocket> videoSockets;
         private readonly ILocalMediaSession mediaSession;
+        private UdpClient udpClient = new UdpClient();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BotMediaStream"/> class.
@@ -189,15 +190,13 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
             this.GraphLogger.Info($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
             System.Diagnostics.Trace.WriteLine($"Received Audio: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp})]");
 
-            UdpClient udpClient = new UdpClient();
-
             var sendBytes = new byte[e.Buffer.Length];
 
             Marshal.Copy(e.Buffer.Data, sendBytes, 0, sendBytes.Length);
 
             try
             {
-                var packetLength = udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 12000);
+                var packetLength = this.udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 12000);
                 System.Diagnostics.Trace.WriteLine("Sending Audio Udp... Packet length: " + packetLength);
             }
             catch (Exception execption)
@@ -223,15 +222,13 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
             this.GraphLogger.Info($"[{e.SocketId}]: Received Video: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
             System.Diagnostics.Trace.WriteLine($"[{e.SocketId}]: Received Video: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
 
-            UdpClient udpClient = new UdpClient();
-
             var sendBytes = new byte[e.Buffer.Length];
 
             Marshal.Copy(e.Buffer.Data, sendBytes, 0, sendBytes.Length);
 
             try
             {
-                var packetLength = udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 11000);
+                var packetLength = this.udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 11001);
                 System.Diagnostics.Trace.WriteLine("Sending Video Udp... Packet length: " + packetLength);
             }
             catch (Exception execption)
@@ -255,6 +252,21 @@ namespace Sample.PolicyRecordingBot.FrontEnd.Bot
         private void OnVbssMediaReceived(object sender, VideoMediaReceivedEventArgs e)
         {
             this.GraphLogger.Info($"[{e.SocketId}]: Received VBSS: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
+            System.Diagnostics.Trace.WriteLine($"[{e.SocketId}]: Received VBSS: [VideoMediaReceivedEventArgs(Data=<{e.Buffer.Data.ToString()}>, Length={e.Buffer.Length}, Timestamp={e.Buffer.Timestamp}, Width={e.Buffer.VideoFormat.Width}, Height={e.Buffer.VideoFormat.Height}, ColorFormat={e.Buffer.VideoFormat.VideoColorFormat}, FrameRate={e.Buffer.VideoFormat.FrameRate})]");
+
+            var sendBytes = new byte[e.Buffer.Length];
+
+            Marshal.Copy(e.Buffer.Data, sendBytes, 0, sendBytes.Length);
+
+            try
+            {
+                var packetLength = this.udpClient.Send(sendBytes, sendBytes.Length, "127.0.0.1", 11001);
+                System.Diagnostics.Trace.WriteLine("Sending VBSS Udp... Packet length: " + packetLength);
+            }
+            catch (Exception execption)
+            {
+                System.Diagnostics.Trace.WriteLine(execption.ToString());
+            }
 
             // TBD: Policy Recording bots can record the VBSS here
             e.Buffer.Dispose();
