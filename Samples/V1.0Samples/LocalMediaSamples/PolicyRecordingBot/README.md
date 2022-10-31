@@ -148,6 +148,39 @@ Choose the correct Azure Subscription Publish it to the cloud service you create
         ```json
             DELETE https://bot.contoso.com/calls/{CallId}
         ```
+
+
+### Connecting bot with GStreamer
+
+To use GStreamer with the Teams bot, you will need to install it on the VM. 
+
+1. Find your cloud service (extended support) in Azure Portal. 
+2. Go to Roles and Instances -> your instance name (in this example "CRWorkerRole_IN_0").
+3. Click "connect".
+
+This will download the RDP file.
+
+In your connected VM instance:
+1. [Download GStreamer](https://gstreamer.freedesktop.org/download/). Choose MSVC 64-bit. Download the runtime installer and development installer. 
+2. Open downloaded files and choose the "complete" type of install. 
+3. Add GStreamer to path: Environment Variables > System variables > Variable :Path > Edit > New > Paste "C:\gstreamer\1.0\msvc_x86_64\bin" > OK.
+
+Connect with Qonda:
+1. Launch [Qonda](https://app.goqonda.io/event/508-967/dT3L1Io5PhB7LLU7zIfM/EET8gLKuZV08k3mN/yVgIBl2CfOhAK2Eq?nick=name&lang=orig&proxy=langProxy)
+2. [Open connection](https://mediasoup.qonda.cloud:4443/getInjectURL/dT3L1Io5PhB7LLU7zIfM)
+3. Paste appropriate RTP and RTCP ports in the video and audio pipeline: 
+```
+Audio:
+gst-launch-1.0 -v rtpbin name=rtpbin rtp-profile=avpf do-retransmission=true udpsrc port=12000 ! rawaudioparse use-sink-caps=false format=pcm pcm-format=s16le sample-rate=16000 num-channels=1 ! queue ! decodebin ! audioconvert ! audioresample ! audio/x-raw, rate=24000 ! opusenc ! rtpopuspay pt=101 ssrc=11111111 ! rtpbin.send_rtp_sink_1 rtpbin.send_rtp_src_1 ! udpsink host="<QONDA_IP>" port="<QONDA_RTP_PORT>" rtpbin.send_rtcp_src_1 ! udpsink host="<QONDA_IP>" port="<QONDA_RTCP_PORT>" sync=false async=false
+
+Video:
+gst-launch-1.0 rtpbin name=rtpbin rtp-profile=avpf do-retransmission=true udpsrc port=11001 ! queue ! h264parse ! decodebin ! videoconvert ! vp8enc target-bitrate=2000000 deadline=1 cpu-used=-5 ! rtpvp8pay pt=102 ssrc=22222222 picture-id-mode=2 ! rtprtxqueue fulfilled-requests=1000 max-size-packets=0 ! rtpbin.send_rtp_sink_0 rtpbin.send_rtp_src_0 ! udpsink host="<QONDA_IP>" port="<QONDA_RTP_PORT>" rtpbin.send_rtcp_src_0 ! udpsink host="<QONDA_IP>" port="<QONDA_RTCP_PORT>" sync=false async=false
+
+```
+4. Launch each command in a seperate cmd window.
+
+Sometimes the connection with Qonda may require multiple tries. Each time you need to generate a new connection and remember to close the previous one. 
+
 ### Frequently Asked Questions:
 
 1. **Question**: Call was forwarded to voiceMail directly instead of calling.
